@@ -54,7 +54,7 @@ class ProductModule {
         Get.find<AddProductUseCase>(),
         Get.find<DeleteProductUseCase>(),
         eventBus: Get.find<ProductEventBus>(),
-        cartConnector: cartConnector,
+        cartConnector: _HostCartConnector(onAddToCart),
       ),
       permanent: true,
     );
