@@ -1,6 +1,6 @@
 library product;
 
-// External API Exports
+// 🌐 External API Exports
 export 'presentation/pages/product_list_page.dart';
 export 'presentation/bindings/product_binding.dart';
 export 'routes/app_routes.dart';
@@ -23,11 +23,12 @@ import 'domain/usecases/delete_product_usecase.dart';
 import 'domain/usecases/get_products_usecase.dart';
 import 'routes/app_routes.dart';
 import 'presentation/pages/product_list_page.dart';
+import 'domain/entities/product.dart';
 
 class ProductModule {
   static void init({
     required SupabaseClient supabaseClient,
-    ICartConnector? cartConnector,
+    Future<void> Function(Product product)? onAddToCart,
   }) {
     // 🔹 Repository
     Get.put<ProductRepository>(
@@ -43,6 +44,9 @@ class ProductModule {
     // 🔹 Event Bus
     Get.put<ProductEventBus>(ProductEventBus(), permanent: true);
 
+    // 🔹 Cart Connector
+    final cartConnector = _HostCartConnector(onAddToCart);
+
     // 🔹 Controller
     Get.put<ProductController>(
       ProductController(
@@ -55,20 +59,18 @@ class ProductModule {
       permanent: true,
     );
 
-    // 🔹 Service (exposed to host)
+    // 🔹 Host-facing services
     Get.lazyPut<IProductService>(
           () => ProductService(Get.find<ProductController>()),
       fenix: true,
     );
 
-    // 🔹 Facade
     Get.lazyPut<ProductFacade>(
           () => ProductFacadeImpl(Get.find<ProductController>()),
       fenix: true,
     );
   }
 
-  /// ✅ Removed unsupported `id:` — caller should assign this inside shell route children
   static List<GetPage> getRoutes() {
     return [
       GetPage(
@@ -85,4 +87,18 @@ class ProductModule {
 class _EmptyProductBinding extends Bindings {
   @override
   void dependencies() {}
+}
+
+/// ✅ Correct implementation of ICartConnector
+class _HostCartConnector implements ICartConnector {
+  final Future<void> Function(Product product)? _onAddToCart;
+
+  _HostCartConnector(this._onAddToCart);
+
+  @override
+  Future<void> onAddToCart(Product product) async {
+    if (_onAddToCart != null) {
+      await _onAddToCart!(product);
+    }
+  }
 }

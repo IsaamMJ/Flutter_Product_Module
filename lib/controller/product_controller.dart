@@ -8,13 +8,12 @@ import '../core/events/product_events.dart';
 import '../core/state/product_state.dart';
 import '../core/events/product_event_bus.dart';
 
-
 class ProductController extends GetxController {
   final GetProductsUseCase getProductsUseCase;
   final AddProductUseCase addProductUseCase;
   final DeleteProductUseCase deleteProductUseCase;
   final ProductEventBus eventBus;
-  final ICartConnector? cartConnector; // ✅ Uses interface now
+  final ICartConnector? cartConnector;
 
   ProductController(
       this.getProductsUseCase,
@@ -98,7 +97,7 @@ class ProductController extends GetxController {
 
     try {
       await cartConnector!.onAddToCart(product);
-      Get.snackbar('Success', 'Added to cart');
+      Get.snackbar('Success', '${product.name} added to cart');
     } catch (e) {
       print('❌ Error in addToCart: $e');
       Get.snackbar('Error', 'Could not add to cart');
