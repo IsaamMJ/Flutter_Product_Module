@@ -44,7 +44,7 @@ class ProductModule {
     // 🔹 Event Bus
     Get.put<ProductEventBus>(ProductEventBus(), permanent: true);
 
-    // 🔹 Cart Connector
+    // 🔹 Cart Connector (✅ FIX: instantiate once and reuse)
     final cartConnector = _HostCartConnector(onAddToCart);
 
     // 🔹 Controller
@@ -54,12 +54,12 @@ class ProductModule {
         Get.find<AddProductUseCase>(),
         Get.find<DeleteProductUseCase>(),
         eventBus: Get.find<ProductEventBus>(),
-        cartConnector: _HostCartConnector(onAddToCart),
+        cartConnector: cartConnector,
       ),
       permanent: true,
     );
 
-    // 🔹 Host-facing services
+    // 🔹 Optional Services (for host use)
     Get.lazyPut<IProductService>(
           () => ProductService(Get.find<ProductController>()),
       fenix: true,
@@ -86,10 +86,12 @@ class ProductModule {
 
 class _EmptyProductBinding extends Bindings {
   @override
-  void dependencies() {}
+  void dependencies() {
+    // Dependencies already handled in init()
+  }
 }
 
-/// ✅ Correct implementation of ICartConnector
+/// ✅ Cart connector that delegates to the host callback
 class _HostCartConnector implements ICartConnector {
   final Future<void> Function(Product product)? _onAddToCart;
 
