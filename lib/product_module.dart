@@ -72,7 +72,7 @@ class ProductModule {
   static List<GetPage> getRoutes() {
     return [
       GetPage(
-        name: AppRoutes.products,
+        name: ProductRoutes.products,
         page: () => const ProductListPage(),
         binding: _EmptyProductBinding(),
         transition: Transition.noTransition,

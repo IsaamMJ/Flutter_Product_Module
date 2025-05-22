@@ -27,7 +27,7 @@ class ProductModuleApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Product Module Preview',
       debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.products,
+      initialRoute: ProductRoutes.products,
       getPages: ProductPages.routes(
         supabaseClient: Supabase.instance.client,
         cartConnector: _MockCartConnector(),
