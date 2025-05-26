@@ -22,17 +22,17 @@ import 'domain/usecases/delete_product_usecase.dart';
 import 'domain/usecases/get_products_usecase.dart';
 import 'domain/entities/product.dart';
 import 'product_module_config.dart';
-import 'presentation/pages/product_list_page.dart';
-import 'routes/app_routes.dart';
 
 class ProductModule {
-  static late final ProductModuleConfig _config;
+  /// 🔓 Public access to configuration for internal use in routes
+  static late final ProductModuleConfig config;
 
-  static void init(ProductModuleConfig config) {
-    _config = config;
+  static void init(ProductModuleConfig cfg) {
+    config = cfg;
 
+    // 🔗 DI setup
     Get.put<ProductRepository>(
-      ProductRepositoryImpl(config.supabaseClient),
+      ProductRepositoryImpl(cfg.supabaseClient),
       permanent: true,
     );
 
@@ -42,15 +42,13 @@ class ProductModule {
 
     Get.put<ProductEventBus>(ProductEventBus(), permanent: true);
 
-    final cartConnector = _HostCartConnector(config.onAddToCart);
-
     Get.put<ProductController>(
       ProductController(
         Get.find(),
         Get.find(),
         Get.find(),
         eventBus: Get.find(),
-        cartConnector: cartConnector,
+        cartConnector: cfg.cartConnector, // ✅ From config directly
       ),
       permanent: true,
     );
@@ -64,36 +62,5 @@ class ProductModule {
           () => ProductFacadeImpl(Get.find()),
       fenix: true,
     );
-  }
-
-  static List<GetPage> getRoutes() {
-    return [
-      GetPage(
-        name: ProductRoutes.products,
-        page: () => const ProductListPage(),
-        binding: _EmptyProductBinding(),
-        transition: Transition.noTransition,
-        participatesInRootNavigator: false,
-      ),
-    ];
-  }
-}
-
-class _EmptyProductBinding extends Bindings {
-  @override
-  void dependencies() {
-    // All bindings are handled in `init()`
-  }
-}
-
-class _HostCartConnector implements ICartConnector {
-  final Future<void> Function(Product product)? _onAddToCart;
-  _HostCartConnector(this._onAddToCart);
-
-  @override
-  Future<void> onAddToCart(Product product) async {
-    if (_onAddToCart != null) {
-      await _onAddToCart!(product);
-    }
   }
 }
