@@ -24,43 +24,40 @@ import 'domain/entities/product.dart';
 import 'product_module_config.dart';
 
 class ProductModule {
-  /// 🔓 Public access to configuration for internal use in routes
+  /// Public access to module configuration for routes and DI
   static late final ProductModuleConfig config;
 
   static void init(ProductModuleConfig cfg) {
     config = cfg;
 
-    // 🔗 DI setup
+    // Repository
     Get.put<ProductRepository>(
       ProductRepositoryImpl(cfg.supabaseClient),
       permanent: true,
     );
 
+    // Use cases
     Get.lazyPut(() => GetProductsUseCase(Get.find()), fenix: true);
     Get.lazyPut(() => AddProductUseCase(Get.find()), fenix: true);
     Get.lazyPut(() => DeleteProductUseCase(Get.find()), fenix: true);
 
+    // Event bus
     Get.put<ProductEventBus>(ProductEventBus(), permanent: true);
 
+    // Controller with DI
     Get.put<ProductController>(
       ProductController(
-        Get.find(),
-        Get.find(),
-        Get.find(),
-        eventBus: Get.find(),
-        cartConnector: cfg.cartConnector, // ✅ From config directly
+        Get.find(), // getProductsUseCase
+        Get.find(), // addProductUseCase
+        Get.find(), // deleteProductUseCase
+        eventBus: Get.find<ProductEventBus>(),
+        cartConnector: cfg.cartConnector,
       ),
       permanent: true,
     );
 
-    Get.lazyPut<IProductService>(
-          () => ProductService(Get.find()),
-      fenix: true,
-    );
-
-    Get.lazyPut<ProductFacade>(
-          () => ProductFacadeImpl(Get.find()),
-      fenix: true,
-    );
+    // Services and facade
+    Get.lazyPut<IProductService>(() => ProductService(Get.find()), fenix: true);
+    Get.lazyPut<ProductFacade>(() => ProductFacadeImpl(Get.find()), fenix: true);
   }
 }
