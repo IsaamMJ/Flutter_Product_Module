@@ -1,6 +1,5 @@
 library product;
 
-// 🌐 External API Exports
 export 'presentation/pages/product_list_page.dart';
 export 'presentation/bindings/product_binding.dart';
 export 'routes/app_routes.dart';
@@ -21,52 +20,48 @@ import 'domain/repositories/product_repository.dart';
 import 'domain/usecases/add_product_usecase.dart';
 import 'domain/usecases/delete_product_usecase.dart';
 import 'domain/usecases/get_products_usecase.dart';
-import 'routes/app_routes.dart';
-import 'presentation/pages/product_list_page.dart';
 import 'domain/entities/product.dart';
+import 'product_module_config.dart';
+import 'presentation/pages/product_list_page.dart';
+import 'routes/app_routes.dart';
 
 class ProductModule {
-  static void init({
-    required SupabaseClient supabaseClient,
-    Future<void> Function(Product product)? onAddToCart,
-  }) {
-    // 🔹 Repository
+  static late final ProductModuleConfig _config;
+
+  static void init(ProductModuleConfig config) {
+    _config = config;
+
     Get.put<ProductRepository>(
-      ProductRepositoryImpl(supabaseClient),
+      ProductRepositoryImpl(config.supabaseClient),
       permanent: true,
     );
 
-    // 🔹 Use Cases
     Get.lazyPut(() => GetProductsUseCase(Get.find()), fenix: true);
     Get.lazyPut(() => AddProductUseCase(Get.find()), fenix: true);
     Get.lazyPut(() => DeleteProductUseCase(Get.find()), fenix: true);
 
-    // 🔹 Event Bus
     Get.put<ProductEventBus>(ProductEventBus(), permanent: true);
 
-    // 🔹 Cart Connector (delegates to host)
-    final cartConnector = _HostCartConnector(onAddToCart);
+    final cartConnector = _HostCartConnector(config.onAddToCart);
 
-    // 🔹 Controller
     Get.put<ProductController>(
       ProductController(
-        Get.find<GetProductsUseCase>(),
-        Get.find<AddProductUseCase>(),
-        Get.find<DeleteProductUseCase>(),
-        eventBus: Get.find<ProductEventBus>(),
+        Get.find(),
+        Get.find(),
+        Get.find(),
+        eventBus: Get.find(),
         cartConnector: cartConnector,
       ),
       permanent: true,
     );
 
-    // 🔹 Optional services for external use
     Get.lazyPut<IProductService>(
-          () => ProductService(Get.find<ProductController>()),
+          () => ProductService(Get.find()),
       fenix: true,
     );
 
     Get.lazyPut<ProductFacade>(
-          () => ProductFacadeImpl(Get.find<ProductController>()),
+          () => ProductFacadeImpl(Get.find()),
       fenix: true,
     );
   }
@@ -87,14 +82,12 @@ class ProductModule {
 class _EmptyProductBinding extends Bindings {
   @override
   void dependencies() {
-    // Dependencies already provided in init()
+    // All bindings are handled in `init()`
   }
 }
 
-/// ✅ Cart connector used to bridge back to host app
 class _HostCartConnector implements ICartConnector {
   final Future<void> Function(Product product)? _onAddToCart;
-
   _HostCartConnector(this._onAddToCart);
 
   @override
