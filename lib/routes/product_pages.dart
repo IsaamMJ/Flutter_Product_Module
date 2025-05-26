@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/contracts/i_cart_connector.dart';
 import '../presentation/pages/product_list_page.dart';
 import '../presentation/bindings/product_binding.dart';
+import '../product_module.dart'; // To access ProductModule.config
 
 class ProductPages {
-  static List<GetPage> routes({
-    required SupabaseClient supabaseClient,
-    ICartConnector? cartConnector, // ✅ Clean abstraction for cart
-  }) {
+  static List<GetPage> routes() {
+    final supabaseClient = ProductModule.config.supabaseClient;
+    final cartConnector = ProductModule.config.cartConnector;
+
     return [
       GetPage(
         name: '/products',
         page: () => const ProductListPage(),
         binding: ProductBinding(
           supabaseClient: supabaseClient,
-          cartConnector: cartConnector, // ✅ Pass interface directly
+          cartConnector: cartConnector,
         ),
       ),
     ];
