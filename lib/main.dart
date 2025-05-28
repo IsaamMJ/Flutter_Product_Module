@@ -18,11 +18,11 @@ void main() async {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkamR2YXRiYmh3d3pqdHF2ZHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0NTY5MjUsImV4cCI6MjA2MzAzMjkyNX0.JG2obBbs78w3WpIjXwT91SvpHIsC7H8axnw7mpfepWA',
   );
 
-  // ✅ Initialize ProductModule with mock connector
+  // ✅ Initialize Product Module with mock cart connector
   ProductModule.init(
     ProductModuleConfig(
       supabaseClient: Supabase.instance.client,
-      onAddToCart: _MockCartConnector().onAddToCart,
+      cartConnector: _MockCartConnector(),
     ),
   );
 
@@ -38,16 +38,16 @@ class ProductModuleApp extends StatelessWidget {
       title: 'Product Module Preview',
       debugShowCheckedModeBanner: false,
       initialRoute: ProductRoutes.products,
-      getPages: ProductPages.routes(), // ✅ Now works without params
+      getPages: ProductPages.routes(),
     );
   }
 }
 
-// ✅ Mock connector for preview mode
+// ✅ Mock ICartConnector implementation
 class _MockCartConnector implements ICartConnector {
   @override
   Future<void> onAddToCart(Product product) async {
-    debugPrint('🧪 [Preview] Added to cart: ${product.name}');
+    debugPrint('🧪 [MockCartConnector] Added to cart: ${product.name}');
     Get.snackbar(
       'Preview Cart',
       '${product.name} added (mock)',

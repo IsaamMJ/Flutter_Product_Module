@@ -2,16 +2,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'domain/entities/product.dart';
 import 'product_module.dart';
 import 'product_module_config.dart';
+import 'core/contracts/i_cart_connector.dart';
 
-/// Initializes the Product Module with required dependencies.
 class ProductModuleInitializer {
   static void init({
     required SupabaseClient supabaseClient,
-    Future<void> Function(Product product)? onAddToCart,
+    ICartConnector? cartConnector,
   }) {
     final config = ProductModuleConfig(
       supabaseClient: supabaseClient,
-      onAddToCart: onAddToCart,
+      cartConnector: cartConnector,
     );
 
     ProductModule.init(config);
